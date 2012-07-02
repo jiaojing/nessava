@@ -1,7 +1,6 @@
 package com.github.nessava;
 
 public class Index {
-
 	// skiplist
 	private final SkipList skiplist;
 	// log
@@ -15,10 +14,10 @@ public class Index {
 
 	public Index(String dir) {
 		this.skiplist = new SkipList(100000);
-		this.log = new Log();
+		this.data = new Data(dir);
+		this.log = new Log(dir, data);
 		this.bloom = new Bloomfilter();
 		this.sst = new SST();
-		this.data = new Data();
 	}
 
 	public byte[] get(byte[] key) {
@@ -44,7 +43,7 @@ public class Index {
 		// log append here
 		long offset = log.append(key, value);
 		SkipList now = this.skiplist;
-		if (skiplist.isFull()) {
+		if (now.isFull()) {
 			// merge here.
 			now = new SkipList(100000);
 		}
