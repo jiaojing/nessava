@@ -1,27 +1,19 @@
 package com.github.nessava;
 
 public class SkipNode {
-
-	private byte[] value;
-
-	private Long offset;
+	public final long offset;
 
 	private OPT opt;
 
 	public static SkipNode del() {
-		return new SkipNode(null, OPT.REMOVE, null);
+		return new SkipNode(OPT.REMOVE, 0L);
 	}
 
-	public static SkipNode add(byte[] value, long offset) {
-		return new SkipNode(value, OPT.ADD, offset);
+	public static SkipNode add(long offset) {
+		return new SkipNode(OPT.ADD, offset);
 	}
-
-	public static boolean isNil(SkipNode node) {
-		return node == null || node.isDeleted();
-	}
-
-	private SkipNode(byte[] value, OPT opt, Long offset) {
-		this.value = value;
+	
+	private SkipNode(OPT opt, long offset) {
 		this.opt = opt;
 		this.offset = offset;
 	}

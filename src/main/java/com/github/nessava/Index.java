@@ -1,59 +1,51 @@
 package com.github.nessava;
 
 public class Index {
-	// skiplist
-	private final SkipList skiplist;
-	// log
-	private final Log log;
 	// bloomfilter
 	private final Bloom bloom;
+	// memtable
+	private final MMT mmt;
 	// sst
 	private final SST sst;
 	// value stored in..
 	private final Data data;
 
 	public Index(String dir) {
-		this.skiplist = new SkipList(100000);
-		this.data = new Data(dir);
-		this.log = new Log(dir, data);
 		this.bloom = new Bloom();
-		this.sst = new SST();
+		this.data = new Data(dir);
+		this.mmt = new MMT(dir, this.data);
+		this.sst = new SST(dir);
 	}
 
 	public byte[] get(byte[] key) {
 		byte[] value = null;
+		long offset = Data.INVALID_OFFSET;
+		// bloom filter
 		if (!bloom.contain(key)) {
 			return value;
 		}
-		// skiplist
-		SkipNode node = skiplist.lookup(key);
-		if (SkipNode.isNil(node)) {
-			// merge skiplist lookup
-			return value;
+		//mmt lookup
+		offset = mmt.lookup(key);
+		// sst lookup
+		if (Data.invalid(offset)) {
+			offset = sst.getOffset(key);
 		}
-		long offset = sst.get(key);
-		if (offset != 0L) {
+		// get value
+		if (!Data.invalid(offset)) {
 			value = data.getWithCatch(offset);
 		}
-
 		return value;
 	}
 
 	public boolean add(byte[] key, byte[] value) {
-		// log append here
-		long offset = log.append(key, value);
-		SkipList now = this.skiplist;
-		if (now.isFull()) {
-			// merge here.
-			now = new SkipList(100000);
-			// log next
-		}
-		// 插入到skiplist
-		boolean succ = now.insert(key, SkipNode.add(value, offset));
+		boolean succ = mmt.add(key, value);
 		if (succ) {
 			bloom.add(key);
 		}
-		return false;
+		return succ;
 	}
 
+	public boolean remove(byte[] key) {
+		return false;
+	}
 }

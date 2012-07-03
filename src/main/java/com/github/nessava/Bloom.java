@@ -4,7 +4,7 @@ import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 
 public class Bloom {
-	private static final int EXPECTED_INSERTIONS = 100000;
+	private static final int EXPECTED_INSERTIONS = 1000000;
 
 	private final BloomFilter<byte[]> bloom;
 

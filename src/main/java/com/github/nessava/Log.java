@@ -12,22 +12,17 @@ public class Log {
 
 	private FileChannel file;
 
-	private final Data data;
-
-	public Log(String dir, Data data) {
+	public Log(String logfile) {
 		try {
-			this.file = new RandomAccessFile(dir, "rw").getChannel();
+			this.file = new RandomAccessFile(logfile, "rw").getChannel();
 		} catch (FileNotFoundException e) {
 			// log here...
 			System.exit(-1);
 		}
-		this.data = data;
 	}
 
-	public long append(byte[] key, byte[] value) {
-		long offset = 0L;
+	public boolean append(byte[] key, long offset) {
 		try {
-			offset = data.write(value);
 			ByteBuffer buffer = ByteBuffer.allocate(Ints.BYTES + key.length
 					+ Longs.BYTES);
 			buffer.putInt(key.length).put(key).putLong(offset).flip();
@@ -37,7 +32,8 @@ public class Log {
 			file.force(false);
 		} catch (Exception e) {
 			// log here...
+			return false;
 		}
-		return offset;
+		return true;
 	}
 }

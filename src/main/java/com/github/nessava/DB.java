@@ -2,7 +2,7 @@ package com.github.nessava;
 
 public class DB {
 	private final String dir;
-	private final LLRU llru;
+	private final LRUCache lru;
 	private final Index index;
 
 	public static DB open(String dir) {
@@ -11,16 +11,16 @@ public class DB {
 
 	private DB(String dir) {
 		this.dir = dir;
-		this.llru = new LLRU();
+		this.lru = new LRUCache(10000);
 		this.index = new Index(dir);
 	}
 
 	public byte[] get(byte[] key) {
-		byte[] value = llru.get(key);
+		byte[] value = lru.get(key);
 		if (value == null) {
 			value = index.get(key);
 			if (value != null) {
-				llru.set(key, value);
+				lru.set(key, value);
 			}
 		}
 		return value;
@@ -31,15 +31,17 @@ public class DB {
 	}
 
 	public boolean add(byte[] key, byte[] value) {
-		llru.remove(key,value);
-		return index.add(key,value);
+		lru.remove(key);
+		return index.add(key, value);
 	}
 
 	public boolean remove(byte[] key) {
-		return false;
+		lru.remove(key);
+		return index.remove(key);
 	}
 
 	public void close() {
+		
 	}
 
 	public String info() {

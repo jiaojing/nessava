@@ -15,6 +15,11 @@ import com.google.common.primitives.Ints;
  * @author tony
  */
 public class Data {
+	public static long INVALID_OFFSET = -1L;
+
+	public static boolean invalid(long offset) {
+		return offset <= INVALID_OFFSET;
+	}
 
 	private FileChannel channel;
 
@@ -32,6 +37,7 @@ public class Data {
 
 	/**
 	 * maybe 可以做group commit？
+	 * 
 	 * @param value
 	 * @return
 	 * @throws IOException
@@ -54,6 +60,15 @@ public class Data {
 		ByteBuffer buffer = ByteBuffer.allocate(length);
 		channel.read(buffer, offset + Ints.BYTES);
 		return buffer.array();
+	}
+
+	public long writeWitchCatch(byte[] value) {
+		try {
+			return write(value);
+		} catch (IOException e) {
+			// log here...
+			return INVALID_OFFSET;
+		}
 	}
 
 	public byte[] getWithCatch(long offset) {
