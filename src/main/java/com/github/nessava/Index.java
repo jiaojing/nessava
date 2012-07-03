@@ -6,17 +6,17 @@ public class Index {
 	// log
 	private final Log log;
 	// bloomfilter
-	private final Bloomfilter bloom;
+	private final Bloom bloom;
 	// sst
 	private final SST sst;
-
+	// value stored in..
 	private final Data data;
 
 	public Index(String dir) {
 		this.skiplist = new SkipList(100000);
 		this.data = new Data(dir);
 		this.log = new Log(dir, data);
-		this.bloom = new Bloomfilter();
+		this.bloom = new Bloom();
 		this.sst = new SST();
 	}
 
@@ -27,13 +27,13 @@ public class Index {
 		}
 		// skiplist
 		SkipNode node = skiplist.lookup(key);
-		if (node != null && node.isDeleted()) {
+		if (SkipNode.isNil(node)) {
+			// merge skiplist lookup
 			return value;
 		}
-		// merge skiplist lookup
 		long offset = sst.get(key);
 		if (offset != 0L) {
-			value = data.get(offset);
+			value = data.getWithCatch(offset);
 		}
 
 		return value;
@@ -46,9 +46,10 @@ public class Index {
 		if (now.isFull()) {
 			// merge here.
 			now = new SkipList(100000);
+			// log next
 		}
 		// 插入到skiplist
-		boolean succ = now.insert(key, SkipNode.value(offset));
+		boolean succ = now.insert(key, SkipNode.add(value, offset));
 		if (succ) {
 			bloom.add(key);
 		}
