@@ -24,8 +24,8 @@ public class SST {
 				return name.endsWith(".sst");
 			}
 		});
-		for(File sst : sstFiles){
-			//FIXME footer init
+		for (File sst : sstFiles) {
+			
 		}
 	}
 

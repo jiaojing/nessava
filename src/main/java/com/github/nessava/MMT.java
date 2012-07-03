@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,7 +53,7 @@ public class MMT {
 			now = new SkipList(nextlog(), data);
 			// merge here...
 		}
-		return now.insert(key, null);
+		return now.insert(key, value);
 	}
 
 	private String nextlog() {
@@ -68,11 +70,21 @@ public class MMT {
 		File[] logfiles = findLogFiles(dbDir);
 		// 2. sort it.
 		sortByNum(logfiles);
-		// 3.
-		for (File log : logfiles) {
-			
-		}
+		// 3.rebuild skiplist from log
+		SkipLog skip = rebuildFromLog(logfiles);
+		// 4. merge here...
+		skip.add(null, null);
+	}
 
+	private SkipLog rebuildFromLog(File[] logfiles) {
+		SkipLog skip = new SkipLog();
+		for (File logfile : logfiles) {
+			Log log = new Log(logfile);
+			for (SkipEntry entry : log) {
+				skip.add(entry.key, entry.node);
+			}
+		}
+		return skip;
 	}
 
 	@VisibleForTesting
@@ -108,4 +120,5 @@ public class MMT {
 	}
 
 	private static final Pattern p = Pattern.compile("(\\d+).log");
+	private static final ExecutorService service = Executors.newSingleThreadExecutor();
 }

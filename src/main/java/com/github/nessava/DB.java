@@ -1,7 +1,8 @@
 package com.github.nessava;
 
+import java.io.File;
+
 public class DB {
-	private final String dir;
 	private final LRUCache lru;
 	private final Index index;
 
@@ -10,9 +11,14 @@ public class DB {
 	}
 
 	private DB(String dir) {
-		this.dir = dir;
+		ensureDirExist(dir);
 		this.lru = new LRUCache(10000);
 		this.index = new Index(dir);
+	}
+
+	private boolean ensureDirExist(String dir) {
+		File dbdir = new File(dir);
+		return dbdir.mkdirs();
 	}
 
 	public byte[] get(byte[] key) {
@@ -41,7 +47,7 @@ public class DB {
 	}
 
 	public void close() {
-		
+
 	}
 
 	public String info() {

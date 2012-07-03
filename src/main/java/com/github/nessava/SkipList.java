@@ -47,7 +47,7 @@ public class SkipList {
 
 	public boolean insert(byte[] key, byte[] value) {
 		long offset = data.writeWitchCatch(value);
-		if (offset >= 0) {
+		if (!Data.invalid(offset)) {
 			if (log.append(key, offset)) {
 				skip.put(key, SkipNode.add(offset));
 				size.incrementAndGet();
